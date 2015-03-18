@@ -31,42 +31,62 @@ int main(){
     refresh();
     int i;
     int j;
-    for (i=0;i<LINES;i++) {
-        for (j=0;j<COLS;j++) {
-            mvaddch(i,j,'.');
+    int maxx,minx,maxy,miny;
+    maxx=startx+39;
+    minx=startx-39;
+    maxy=starty+11;
+    miny=starty-11;
+    init_pair(2,COLOR_BLUE,COLOR_BLACK);
+    clear();
+    for (i=miny;i<maxy;i++) {
+        for (j=minx;j<maxx;j++) {
+            mvaddch(i,j,'.'|COLOR_PAIR(2));
         }
     }
+    for (j=minx;j<maxx;j++) {
+            mvaddch(miny-1,j,'-');
+    }
+    for (j=minx;j<maxx;j++) {
+            mvaddch(maxy,j,'-');
+    }
+    for (i=miny;i<maxy;i++) {
+            mvaddch(i,maxx,'|');
+    }
+    for (i=miny;i<maxy;i++) {
+            mvaddch(i,minx-1,'|');
+    }
+    
     refresh();
     init_pair(1,COLOR_YELLOW,COLOR_RED);
     mvaddch(starty,startx,64 |A_BOLD|COLOR_PAIR(1));
     while((ch=getch()) !=KEY_F(2)) {
         switch(ch) {
             case KEY_RIGHT:
-                if (startx==COLS-1) {
+                if (startx==maxx-1) {
                     break;
                 }
-                mvaddch(starty,startx,'.');
+                mvaddch(starty,startx,'.'|COLOR_PAIR(2));
                 mvaddch(starty,++startx,64|A_BOLD|COLOR_PAIR(1));
                 break;
             case KEY_LEFT:
-                if (startx==0) {
+                if (startx==minx) {
                     break;
                 }
-                mvaddch(starty,startx,'.');
+                mvaddch(starty,startx,'.'|COLOR_PAIR(2));
                 mvaddch(starty,--startx,64|A_BOLD|COLOR_PAIR(1));
                 break;
             case KEY_DOWN:
-                if (starty==LINES-1) {
+                if (starty==maxy-1) {
                     break;
                 }
-                mvaddch(starty,startx,'.');
+                mvaddch(starty,startx,'.'|COLOR_PAIR(2));
                 mvaddch(++starty,startx,64|A_BOLD|COLOR_PAIR(1));
                 break;
             case KEY_UP:
-                if (starty==0) {
+                if (starty==miny) {
                     break;
                 }
-                mvaddch(starty,startx,'.');
+                mvaddch(starty,startx,'.'|COLOR_PAIR(2));
                 mvaddch(--starty,startx,64|A_BOLD|COLOR_PAIR(1));
                 break;
             default:

@@ -21,6 +21,14 @@ tile get_tile(WINDOW* w, room rm, int x,int y) {
         }
     }
 }
+tile get_local(room rm, int x, int y) {
+    int i;
+    for (i=0;i<rm->xsize*rm->ysize;++i) {
+        if (rm->tilearray[i]->xcor==x && rm->tilearray[i]->ycor==y) {
+            return rm->tilearray[i];
+        }
+    }
+}
 room map_initialize(int flr,pokemons pokelist) {
     int i;
     int j;
@@ -28,15 +36,16 @@ room map_initialize(int flr,pokemons pokelist) {
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
     init_pair(4,COLOR_BLUE,COLOR_BLACK);
     init_pair(5,COLOR_WHITE,COLOR_BLACK);
+    init_pair(6,COLOR_YELLOW,COLOR_BLACK);
     int numrooms=(rand()%5)+7;
     room*roomlist= (room*) calloc(numrooms,sizeof(room));
     for (i=0;i<numrooms;++i) {
-        roomlist[i]=init_room(rand()%25+15,rand()%9+6,COLOR_PAIR(2),COLOR_PAIR(3),COLOR_PAIR(4),COLOR_PAIR(5));
+        roomlist[i]=init_room(rand()%25+15,rand()%9+6,COLOR_PAIR(2),COLOR_PAIR(3),COLOR_PAIR(4),COLOR_PAIR(5),COLOR_PAIR(6));
     }
     int extra=(rand()%3)+2;
     room*extrarooms=(room*) calloc(extra,sizeof(room));
     for (i=0;i<extra;++i) {
-        extrarooms[i]=init_room(rand()%25+15,rand()%9+6,COLOR_PAIR(2),COLOR_PAIR(3),COLOR_PAIR(4),COLOR_PAIR(5));
+        extrarooms[i]=init_room(rand()%25+15,rand()%9+6,COLOR_PAIR(2),COLOR_PAIR(3),COLOR_PAIR(4),COLOR_PAIR(5),COLOR_PAIR(6));
     }
     
     int rando=rand()%numrooms;
@@ -47,7 +56,7 @@ room map_initialize(int flr,pokemons pokelist) {
     for (j=0;j<roomlist[rando]->xsize*roomlist[rando]->ysize;j++) {
         if (roomlist[rando]->tilearray[j]->xcor == roomwidth+1) {
             if (roomlist[rando]->tilearray[j]->ycor== roomheight+1) {
-                roomlist[rando]->tilearray[j]->item='^';
+                roomlist[rando]->tilearray[j]->form='^';
             }
         }
     }
@@ -64,12 +73,18 @@ room map_initialize(int flr,pokemons pokelist) {
         }
     }
     for (i=0;i<numrooms;++i) {
-        create_monsters(roomlist[i],flr,"dragonite",pokelist);
+        create_monsters(roomlist[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_monsters(roomlist[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_monsters(roomlist[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_items(roomlist[i],flr);
         create_portals(roomlist[i]);
     }
     
     for (i=0;i<extra;++i) {
-        create_monsters(extrarooms[i],flr,"dragonite",pokelist);
+        create_monsters(extrarooms[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_monsters(extrarooms[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_monsters(extrarooms[i],flr,accesspokename(rand()%26,pokelist),pokelist);
+        create_items(extrarooms[i],flr);
         create_portals(extrarooms[i]);
     }
     return roomlist[0];
@@ -118,7 +133,7 @@ int laddercheck(WINDOW*topwin,WINDOW*botwin) {
     while (TRUE) {
         wclear(topwin);
         destroy_win(topwin);
-        topwin=create_newwin(5,COLS,0,0);
+        topwin=create_newwin(5,68,0,0);
         mvwprintw(topwin,1,1,"Would you like to go up a floor?(y/n)\n");
         curs_set(1);
         keypad(botwin,FALSE);
@@ -131,7 +146,7 @@ int laddercheck(WINDOW*topwin,WINDOW*botwin) {
         if (res=='y') {
             wclear(topwin);
             destroy_win(topwin);
-            topwin=create_newwin(5,COLS,0,0);
+            topwin=create_newwin(5,68,0,0);
             mvwprintw(topwin,1,1,"You climb up to the next floor.");
             wrefresh(topwin);
             keypad(topwin,FALSE);
@@ -215,7 +230,7 @@ int room_match(room ra,room rb) {
     return 1;
 }
 
-room init_room(int width,int height,int colw,int cold,int colladder,int coldoor) {
+room init_room(int width,int height,int colw,int cold,int colladder,int coldoor,int colitems) {
     room result= malloc(sizeof(struct room_store));
     result->xsize=width;
     result->ysize=height;
@@ -226,6 +241,7 @@ room init_room(int width,int height,int colw,int cold,int colladder,int coldoor)
     result->cold=cold;
     result->colladder=colladder;
     result->coldoor=coldoor;
+    result->colitems=colitems;
     int i;
     int j;
     int n=0;
@@ -238,7 +254,7 @@ room init_room(int width,int height,int colw,int cold,int colladder,int coldoor)
         for (j=1;j<height-1;++j) {
             result->tilearray[n]->xcor=i;
             result->tilearray[n]->ycor=j;
-            result->tilearray[n]->item='.';
+            result->tilearray[n]->form='.';
             n++;
             
         }
@@ -248,25 +264,25 @@ room init_room(int width,int height,int colw,int cold,int colladder,int coldoor)
     for (i=1;i<width-1;++i) {
         result->tilearray[n]->xcor=i;
         result->tilearray[n]->ycor=0;
-        result->tilearray[n]->item='#';
+        result->tilearray[n]->form='#';
         n++;
     }
     for (i=1;i<width-1;++i) {
         result->tilearray[n]->xcor=i;
         result->tilearray[n]->ycor=height-1;
-        result->tilearray[n]->item='#';
+        result->tilearray[n]->form='#';
         n++;
     }
     for (j=0;j<height;++j) {
         result->tilearray[n]->xcor=0;
         result->tilearray[n]->ycor=j;
-        result->tilearray[n]->item='#';
+        result->tilearray[n]->form='#';
         n++;
     }
     for (j=0;j<height;++j) {
         result->tilearray[n]->xcor=width-1;
         result->tilearray[n]->ycor=j;
-        result->tilearray[n]->item='#';
+        result->tilearray[n]->form='#';
         n++;
         if (n==width*height) {
             break;
@@ -290,24 +306,29 @@ void display_room(WINDOW *win, int startx,int starty,room aroom) {
     int starti=startx-aroom->xsize/2;
     int startj=starty-aroom->ysize/2;
     for (n=0;n<aroom->xsize*aroom->ysize;++n){
-        if (aroom->tilearray[n]->item=='#') {
+        if (aroom->tilearray[n]->form=='#') {
             col=aroom->colw;
         }
-        else if (aroom->tilearray[n]->item=='\\') {
+        else if (aroom->tilearray[n]->form=='\\') {
             col=aroom->coldoor;
         }
-        else if (aroom->tilearray[n]->item=='^') {
+        else if (aroom->tilearray[n]->form=='^') {
             col=aroom->colladder;
+        }
+        else if (aroom->tilearray[n]->anitem != NULL) {
+            col=aroom->colitems;
         }
         else {
             col=aroom->cold;
         }
             
-        mvwaddch(win,startj+aroom->tilearray[n]->ycor,starti+aroom->tilearray[n]->xcor,aroom->tilearray[n]->item |col);
+        mvwaddch(win,startj+aroom->tilearray[n]->ycor,starti+aroom->tilearray[n]->xcor,aroom->tilearray[n]->form |col);
         if (aroom->tilearray[n]->mons != NULL) {
-             mvwaddch(win,startj+aroom->tilearray[n]->ycor,starti+aroom->tilearray[n]->xcor,*aroom->tilearray[n]->mons->poketype->form |col);
+             mvwaddch(win,startj+aroom->tilearray[n]->ycor,starti+aroom->tilearray[n]->xcor,aroom->tilearray[n]->mons->poketype->form |col);
         }
-            
+        if (aroom->tilearray[n]->anitem!=NULL) {
+            mvwaddch(win,startj+aroom->tilearray[n]->ycor,starti+aroom->tilearray[n]->xcor,aroom->tilearray[n]->anitem->form |col);
+        }
     }
     
 }

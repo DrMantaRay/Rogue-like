@@ -4,16 +4,30 @@
 #include <stdlib.h>
 #include <time.h>
 
+void create_items(room rm,int flr) {
+    int i;
+    int r;
+    for (i=0;i<rm->xsize*rm->ysize;++i) {
+        if (rm->tilearray[i]->form=='.') {
+            r=rand()%200;
+            if (r==0) {
+                rm->tilearray[i]->anitem=init_item(flr);
+                rm->tilearray[i]->anitem->form='$';
+            }
+        }
+    }
+}
 void create_monsters(room rm,int flr, char* pokemon, pokemons pokelist) {
     int i;
     int r;
     for (i=0;i<rm->xsize*rm->ysize;++i) {
-        if (rm->tilearray[i]->item == '.') {
-            r=rand()%50;
+        if (rm->tilearray[i]->form == '.' && rm->tilearray[i]->mons==NULL) {
+            r=rand()%150;
             if (r==0) {
-                rm->tilearray[i]->mons=init_monster(flr,pokemon,pokelist);
-                rm->tilearray[i]->mons->poketype->form=malloc(sizeof(char));
-                *rm->tilearray[i]->mons->poketype->form='U';
+                rm->tilearray[i]->mons=init_monster(flr,pokemon,pokelist);                
+            }
+            else {
+                rm->tilearray[i]->mons=NULL;
             }
         }
     }
@@ -25,7 +39,7 @@ int create_portals(room ar) {
         ran=rand()% (ar->xsize-2) +1;
         for (i=0;i<ar->xsize*ar->ysize;++i) {
             if (ar->tilearray[i]->xcor==ran &&ar->tilearray[i]->ycor==0) {
-                ar->tilearray[i]->item='\\';
+                ar->tilearray[i]->form='\\';
                 ar->tilearray[i]->aroom=ar->north;
                 ar->nx=ar->tilearray[i]->xcor;
                 ar->ny=ar->tilearray[i]->ycor;
@@ -36,7 +50,7 @@ int create_portals(room ar) {
         ran=rand()% (ar->ysize-2)+1;
         for (i=0;i<ar->xsize*ar->ysize;++i) {
             if (ar->tilearray[i]->ycor==ran &&ar->tilearray[i]->xcor==ar->xsize-1) {
-                ar->tilearray[i]->item='\\';
+                ar->tilearray[i]->form='\\';
                 ar->tilearray[i]->aroom=ar->east;
                 ar->ex=ar->tilearray[i]->xcor;
                 ar->ey=ar->tilearray[i]->ycor;
@@ -47,7 +61,7 @@ int create_portals(room ar) {
         ran=rand()% (ar->xsize-2)+1;
         for (i=0;i<ar->xsize*ar->ysize;++i) {
             if (ar->tilearray[i]->xcor==ran &&ar->tilearray[i]->ycor==ar->ysize-1) {
-                ar->tilearray[i]->item='\\';
+                ar->tilearray[i]->form='\\';
                 ar->tilearray[i]->aroom=ar->south;
                 ar->sx=ar->tilearray[i]->xcor;
                 ar->sy=ar->tilearray[i]->ycor;
@@ -58,7 +72,7 @@ int create_portals(room ar) {
         ran=rand()% (ar->ysize-2)+1;
         for (i=0;i<ar->xsize*ar->ysize;++i) {
             if (ar->tilearray[i]->ycor==ran &&ar->tilearray[i]->xcor==0) {
-                ar->tilearray[i]->item='\\';
+                ar->tilearray[i]->form='\\';
                 ar->tilearray[i]->aroom=ar->west;
                 ar->wx=ar->tilearray[i]->xcor;
                 ar->wy=ar->tilearray[i]->ycor;

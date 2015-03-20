@@ -5,16 +5,26 @@
 
 
 typedef struct tile_store {
-    int absxcor;
-    int absycor;
     int xcor;
     int ycor;
-    int item;
+    struct item_store *anitem;
     struct monster_store *mons;
     char*color;
     char*colorbackground;
+    char form;
     struct room_store *aroom;
 } *tile,tile_store;
+
+typedef struct item_store {
+    char * name;
+    char form;
+    int exp;
+    int atk;
+    int def;
+    int maxhp;
+    int curhp;
+    int luck;
+} item_store, *item;
 
 typedef struct room_store {
     int xsize;
@@ -23,6 +33,7 @@ typedef struct room_store {
     int cold;
     int coldoor;
     int colladder;
+    int colitems;
     tile *tilearray;
     int nx,ny,ex,ey,wx,wy,sx,sy;
     struct room_store *north;
@@ -47,6 +58,8 @@ typedef struct hero_store {
   int curhp;
   int atk;
   int def;
+  int luck;
+  int exp;
 } hero_store, *hero;
 
 typedef struct move_cons_store {
@@ -62,7 +75,7 @@ typedef struct pokemonT_store {
   char *name;
   char *type;
   char **movelist;
-  char *form;
+  char form;
   int baseatk;
   int basedef;
   int basehp;
@@ -88,8 +101,17 @@ typedef struct monster_store {
   int level;
 } monster_store, *monster;
 
+typedef struct listcons_store {
+  char *contents;
+  struct listcons_store*next;
+} listcons_store, *listcons;
+
+typedef struct list_store {
+  listcons front;
+} list_store, *list;
+void add_pokemon(pokemonT newpoke, pokemons result);
 int laddercheck(WINDOW*topwin,WINDOW*botwin);
-room init_room(int width,int height,int colw,int cold,int colladder,int coldoor);
+room init_room(int width,int height,int colw,int cold,int colladder,int coldoor,int colitems);
 void display_room(WINDOW *win,int startx,int starty,room aroom);
 WINDOW*create_newwin(int height, int width,int starty,int startx);
 void destroy_win(WINDOW *local_win);
@@ -100,8 +122,14 @@ int create_portals(room ar);
 void create_monsters(room rm,int flr,char*pokemon,pokemons pokelist);
 room map_initialize(int flr,pokemons pokelist);
 tile get_tile(WINDOW* w, room rm, int x,int y);
+item init_item(int flr);
+void create_items(room rm,int flr);
+tile get_local(room rm, int x, int y);
 
-
+int is_move(char *move, list movelist);
+listcons new_listcons(char*contents, listcons next);
+list new_list();
+void addtolist(char*thing,list stuff);
 amove new_move(char *name, char *type, int tohit, int power);
 
 void free_move(amove m);
@@ -123,7 +151,7 @@ void free_moves(moves m);
 
 moves read_moves(FILE *fp);
 
-pokemonT new_pokemonT(char *name, char *type, char **movelist, int baseatk, int basedef, int basehp);
+pokemonT new_pokemonT(char *name, char form, char *type, char **movelist, int baseatk, int basedef, int basehp);
 
 void free_pokemon(pokemonT m);
 
@@ -149,7 +177,7 @@ int player_attack(amove m, monster p, hero h);
 
 //Graphics
 
-int battle(monster p, hero h,int movefirst, moves movelist,WINDOW*win);
+int battle(WINDOW*westwin, monster p, hero h, int movefirst, list yourmovelist, moves movelist,WINDOW*win);
 
 int leng(char** array);
 
@@ -157,4 +185,5 @@ hero new_hero(int level, int maxhp, int curhp, int atk, int def);
 
 void *free_hero(hero h);
 
+char *accesspokename(int i,pokemons pokelist);
 

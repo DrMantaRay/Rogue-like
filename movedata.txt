@@ -1,2 +1,21 @@
 fly flying 100 100
 bounce flying 10 1000
+death none 100 10000000
+plop none 100 10
+twister dragon 50 200
+smoke_grass pothead 100 0
+dance none 100 0
+smoke_pipe pothead 50 10
+crush none 25 400
+heal special 100 30
+excaliber cheat 100 5000
+flail none 100 20
+splash water 100 0
+punch none 75 50
+fireball fire 85 200
+scratch 65 59
+taxes 50 50
+freezingtouch 100 100
+wheelofdoom 3 100000000
+poisonsting 20 3000
+hornattack 67 300

@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include "rogue.h"
 #include <time.h>
+#include <ctype.h>
 
 int main(){
     FILE*movedata = fopen("movedata.txt","r");
@@ -13,8 +14,11 @@ int main(){
     FILE*pokedata = fopen("pokemondata.txt","r");
     pokemons pokelist = read_pokemons(pokedata);
     fclose(pokedata);
-    monster amonster=init_monster(3,"gyrados",pokelist);
-    hero ahero=new_hero(1,12,12,5,5);
+    hero ahero=new_hero(1,300,300,100,100);
+    list yourmovelist=new_list();
+    addtolist("heal", yourmovelist);
+    addtolist("smoke_pipe", yourmovelist);
+    addtolist("punch", yourmovelist);
     int startx,starty,row,col;
     int ch;
     initscr();
@@ -56,8 +60,8 @@ int main(){
     refresh();
     curs_set(0);
     WINDOW*topwin;
-    topwin=create_newwin(5,COLS,0,0);
-    mvwprintw(topwin,1,1,"Press F2 twice to exit. Arrow keys for movement.");
+    topwin=create_newwin(5,68,0,0);
+    mvwprintw(topwin,1,1,"Press F2 to exit. Arrow keys for movement.");
     wrefresh(topwin);
     int i;
     int j;
@@ -73,12 +77,22 @@ int main(){
     startx=maxxbot/2;
     starty=maxybot/2;
     int flr=1;
+    WINDOW*westwin;
+    westwin=create_newwin(5,10,0,69);
+    wrefresh(westwin);
+    wbkgd(westwin,COLOR_PAIR(3));
+    wclear(westwin);
+    wprintw(westwin,"\nHP:%d\n",ahero->curhp);
+    wprintw(westwin,"LvL:%d\n", ahero->level);
+    wprintw(westwin,"Exp:%d\n",ahero->exp);
+    wrefresh(westwin);
     while (TRUE) {
         room aroom=map_initialize(flr,pokelist);
+        startx=maxxbot/2;
+        starty=maxybot/2;
         flr++;
         wclear(botwin);
         display_room(botwin,startx,starty,aroom);
-        wrefresh(botwin);
         mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));
         wrefresh(botwin);
         keypad(botwin,TRUE);
@@ -86,7 +100,10 @@ int main(){
         int x;
         int y;
         int ladder=0;
+        tile *ntile= malloc(8*sizeof(tile));
+        tile ctile;
         while(((ch=wgetch(botwin)) !=KEY_F(2)) && !ladder) {
+                 
             switch(ch) {
                 case KEY_RIGHT:
                     str=(mvwinch(botwin,starty,startx+1) & A_CHARTEXT);
@@ -99,14 +116,57 @@ int main(){
                         starty=y;
                         break;
                     }
+                    if (str=='$') {
+                        tile t=get_tile(botwin,aroom,startx+1,starty);
+                        item it= get_tile(botwin,aroom,startx+1,starty)->anitem;
+                        ahero->atk+=it->atk;
+                        ahero->def+=it->def;
+                        ahero->exp+=it->exp;
+                        ahero->curhp+=it->curhp;
+                        ahero->maxhp+=it->maxhp;
+                        mvwaddch(botwin,starty,startx+1,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->anitem=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);       
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1)); 
+                        break;
+                    }
                     if (str=='^') {
                         ladder=laddercheck(topwin,botwin);
                         break;
                     }
-                    if (str=='U') {
+                    if (isupper(str)) {
                         monster mons=get_tile(botwin,aroom,startx+1,starty)->mons;
+                        tile t=get_tile(botwin,aroom,startx+1,starty);
                         keypad(botwin,FALSE);
-                        battle(mons, ahero,1, movelist, topwin);
+                        if (battle(westwin,mons, ahero,1, yourmovelist,movelist, topwin)==-1) {
+                            keypad(topwin,TRUE);
+                            wclear(topwin);
+                            destroy_win(topwin);
+                            topwin=create_newwin(5,68,0,0);
+                            mvwprintw(topwin,1,1,"You Die. How Sad.");
+                            wrefresh(topwin);
+                            wgetch(topwin);
+                            clear();
+                            echo();
+                            exit(0);
+                        }             
+                        mvwaddch(botwin,starty,startx+1,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->mons=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);       
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));        
+                        keypad(topwin,FALSE);
                         keypad(botwin,TRUE);
                         break;
                     }
@@ -122,10 +182,54 @@ int main(){
                         ladder=laddercheck(topwin,botwin);
                         break;
                     }
-                    if (str=='U') {
+                    if (str=='$') {
+                        tile t= get_tile(botwin,aroom,startx-1,starty);
+                        item it= get_tile(botwin,aroom,startx-1,starty)->anitem;
+                        ahero->atk+=it->atk;
+                        ahero->def+=it->def;
+                        ahero->exp+=it->exp;
+                        ahero->curhp+=it->curhp;
+                        ahero->maxhp+=it->maxhp;
+                        mvwaddch(botwin,starty,startx-1,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->anitem=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);       
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1)); 
+                        break;
+                    }
+                    if (isupper(str)) {
                         monster mons=get_tile(botwin,aroom,startx-1,starty)->mons;
+                        tile t= get_tile(botwin,aroom,startx-1,starty);
                         keypad(botwin,FALSE);
-                        battle(mons, ahero,1, movelist, topwin);
+                        keypad(botwin,FALSE);
+                        if (battle(westwin,mons, ahero,1, yourmovelist,movelist, topwin)==-1) {
+                            keypad(topwin,TRUE);
+                            wclear(topwin);
+                            destroy_win(topwin);
+                            topwin=create_newwin(5,68,0,0);
+                            mvwprintw(topwin,1,1,"You Die. How Sad.");
+                            wrefresh(topwin);
+                            wgetch(topwin);
+                            clear();
+                            echo();
+                            exit(0);
+                        }  
+                        mvwaddch(botwin,starty,startx-1,'.'|aroom->cold);     
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->mons=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);     
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));                     
+                        keypad(topwin,FALSE);
                         keypad(botwin,TRUE);
                         break;
                     }
@@ -143,14 +247,58 @@ int main(){
                     if (str=='#') {
                         break;
                     }
+                    if (str=='$') {
+                        tile t= get_tile(botwin,aroom,startx,starty+1);
+                        item it= get_tile(botwin,aroom,startx,starty+1)->anitem;
+                        ahero->atk+=it->atk;
+                        ahero->def+=it->def;
+                        ahero->exp+=it->exp;
+                        ahero->curhp+=it->curhp;
+                        ahero->maxhp+=it->maxhp;
+                        mvwaddch(botwin,starty+1,startx,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->anitem=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);       
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1)); 
+                        break;
+                    }
                     if (str=='^') {
                         ladder=laddercheck(topwin,botwin);
                         break;
                     }
-                    if (str=='U') {
+                    if (isupper(str)) {
                         monster mons=get_tile(botwin,aroom,startx,starty+1)->mons;
+                        tile t= get_tile(botwin,aroom,startx,starty+1);
                         keypad(botwin,FALSE);
-                        battle(mons, ahero,1, movelist, topwin);
+                        keypad(botwin,FALSE);
+                        if (battle(westwin,mons, ahero,1, yourmovelist,movelist, topwin)==-1) {
+                            keypad(topwin,TRUE);
+                            wclear(topwin);
+                            destroy_win(topwin);
+                            topwin=create_newwin(5,68,0,0);
+                            mvwprintw(topwin,1,1,"You Die. How Sad.");
+                            wrefresh(topwin);
+                            wgetch(topwin);
+                            clear();
+                            echo();
+                            exit(0);
+                        }              
+                        mvwaddch(botwin,starty+1,startx,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->mons=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);   
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));           
+                        keypad(topwin,FALSE);
                         keypad(botwin,TRUE);
                         break;
                     }
@@ -172,10 +320,54 @@ int main(){
                         ladder=laddercheck(topwin,botwin);
                         break;
                     }
-                    if (str=='U') {
+                    if (str=='$') {
+                         tile t=get_tile(botwin,aroom,startx,starty-1);
+                        item it= get_tile(botwin,aroom,startx,starty-1)->anitem;
+                        ahero->atk+=it->atk;
+                        ahero->def+=it->def;
+                        ahero->exp+=it->exp;
+                        ahero->curhp+=it->curhp;
+                        ahero->maxhp+=it->maxhp;
+                        mvwaddch(botwin,starty-1,startx,'.'|aroom->cold);
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->anitem=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);       
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1)); 
+                        break;
+                    }
+                    if (isupper(str)) {
                         monster mons=get_tile(botwin,aroom,startx,starty-1)->mons;
+                        tile t=get_tile(botwin,aroom,startx,starty-1);
                         keypad(botwin,FALSE);
-                        battle(mons, ahero,1, movelist, topwin);
+                        keypad(botwin,FALSE);
+                        if (battle(westwin,mons, ahero,1, yourmovelist,movelist, topwin)==-1) {
+                            keypad(topwin,TRUE);
+                            wclear(topwin);
+                            destroy_win(topwin);
+                            topwin=create_newwin(5,68,0,0);
+                            mvwprintw(topwin,1,1,"You Die. How Sad.");
+                            wrefresh(topwin);
+                            wgetch(topwin);
+                            clear();
+                            echo();
+                            exit(0);
+                        }  
+                        mvwaddch(botwin,starty-1,startx,'.'|aroom->cold);  
+                        for (i=0;i<aroom->xsize*aroom->ysize;++i) {
+                            if (t->xcor==aroom->tilearray[i]->xcor) {
+                                if (t->ycor==aroom->tilearray[i]->ycor) {
+                                    aroom->tilearray[i]->mons=NULL;
+                                }
+                            }
+                        }
+                        display_room(botwin,maxxbot/2,maxybot/2,aroom);     
+                        mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));            
+                        keypad(topwin,FALSE);
                         keypad(botwin,TRUE);
                         break;
                     }
@@ -191,6 +383,80 @@ int main(){
                 default:
                     break;
             }
+            wclear(westwin);
+            wprintw(westwin,"\nHP:%d\n",ahero->curhp);
+            wprintw(westwin,"LvL:%d\n", ahero->level);
+            wprintw(westwin,"Exp:%d\n",ahero->exp);
+            wrefresh(westwin);
+            int myx,myy;
+            myx=startx-maxxbot/2+aroom->xsize/2;
+            myy=starty-maxybot/2+aroom->ysize/2;
+            for (i=0;i<aroom->xsize*aroom->ysize;i++) {
+                int ran=rand()%8;   
+                if (aroom->tilearray[i]->mons !=NULL) {
+                    ntile[0]=get_local(aroom,aroom->tilearray[i]->xcor+1,aroom->tilearray[i]->ycor+1);
+                    ntile[1]=get_local(aroom,aroom->tilearray[i]->xcor+1,aroom->tilearray[i]->ycor-1);
+                    ntile[2]=get_local(aroom,aroom->tilearray[i]->xcor-1,aroom->tilearray[i]->ycor+1);
+                    ntile[3]=get_local(aroom,aroom->tilearray[i]->xcor-1,aroom->tilearray[i]->ycor-1);
+                    ntile[4]=get_local(aroom,aroom->tilearray[i]->xcor,aroom->tilearray[i]->ycor+1);
+                    ntile[5]=get_local(aroom,aroom->tilearray[i]->xcor,aroom->tilearray[i]->ycor-1);
+                    ntile[6]=get_local(aroom,aroom->tilearray[i]->xcor+1,aroom->tilearray[i]->ycor);
+                    ntile[7]=get_local(aroom,aroom->tilearray[i]->xcor-1,aroom->tilearray[i]->ycor);
+                    if (ntile[ran]->form=='.'&&ntile[ran]->mons==NULL) {
+                        ntile[ran]->mons=aroom->tilearray[i]->mons;
+                        aroom->tilearray[i]->mons=NULL;
+                    }
+                    if (ntile[ran]->xcor ==myx && ntile[ran]->ycor==myy) {
+                        if (battle(westwin,ntile[ran]->mons, ahero,0, yourmovelist,movelist, topwin)==-1) {
+                            keypad(topwin,TRUE);
+                            wclear(topwin);
+                            destroy_win(topwin);
+                            topwin=create_newwin(5,68,0,0);
+                            mvwprintw(topwin,1,1,"You Die. How Sad.");
+                            wrefresh(topwin);
+                            wgetch(topwin);
+                            clear();
+                            echo();
+                            exit(0);
+                        }
+                        ntile[ran]->mons=NULL;
+                    }                    
+                }
+            }
+            display_room(botwin,maxxbot/2,maxybot/2,aroom);
+            mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));
+            if (ahero->exp > 40*ahero->level) {
+                  ahero->exp = 0;
+                  ahero->level++;
+                  if (ahero->level==2) {
+                    addtolist("dance",yourmovelist);
+                  }
+                  if (ahero->level==5) {
+                    addtolist("fireball", yourmovelist);
+                  }
+                  if (ahero->level==20) {
+                    addtolist("excalibur", yourmovelist);
+                  }
+                  int randstat1 = rand()%25;
+                  int randstat2 = rand()%25;
+                  int randstat3 = rand()%150;
+                  ahero->atk += randstat1;
+                  ahero->def += randstat2;
+                  ahero->curhp += randstat3;
+                  ahero->maxhp += randstat3;
+                  wclear(topwin);
+                  destroy_win(topwin);
+                  topwin=create_newwin(5,68,0,0);
+                  mvwprintw(topwin,1,1,"You leveled up. Grats. No, really, I mean it.");
+                  wrefresh(topwin);
+                  wgetch(topwin);
+                 }
+
+                if (ahero->curhp>ahero->maxhp) {
+                  ahero->curhp = ahero->maxhp;
+                 }
+  
+            
         }
         if (ch==KEY_F(2)) {
             break;

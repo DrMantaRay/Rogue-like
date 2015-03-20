@@ -6,6 +6,18 @@
 #include "rogue.h"
 
 //Movelists should be null terminated.
+char *accesspokename(int i,pokemons pokelist) {
+  if (i>25) {
+    return NULL;
+  }
+  pokemon_cons current=pokelist->front;
+  int j = i;
+  while (j>0) {
+    j -= 1;
+    current=current->next;
+  }
+  return current->contents->name;
+}
 amove new_move(char *name, char *type, int tohit, int power) {
   amove result = (amove) malloc(sizeof(move_store));
   assert(result != NULL);
@@ -92,18 +104,6 @@ moves read_moves(FILE *fp) {
   return result;
 }
 
-pokemonT new_pokemonT(char *name, char *type, char **movelist, int baseatk, int basedef, int basehp) {
-  pokemonT result = (pokemonT) malloc(sizeof(pokemonT_store));
-  assert(result != NULL);
-  result->name = name;
-  result->type = type;
-  result->movelist = movelist;
-  result->baseatk = baseatk;
-  result->basedef = basedef;
-  result->basehp = basehp;
-  return result;
-}
-
 void free_pokemon(pokemonT m) {
   free((void *) m);
 }
@@ -132,17 +132,31 @@ pokemons new_pokemons() {
   return result;
 }
 
+pokemonT new_pokemonT(char *name, char form, char *type, char **movelist, int baseatk, int basedef, int basehp) {
+  pokemonT result = (pokemonT) malloc(sizeof(pokemonT_store));
+  assert(result != NULL);
+  result->name = name;
+  result->form = form;
+  result->type = type;
+  result->movelist = movelist;
+  result->baseatk = baseatk;
+  result->basedef = basedef;
+  result->basehp = basehp;
+  return result;
+}
+
 pokemons read_pokemons(FILE *fp) {
   char*line=malloc(600);
   pokemons result = new_pokemons();
   while (fgets(line,600,fp)) {
     char *name=malloc(20);
+    char display;
     char *type=malloc(20);
     char *movelist=malloc(400);
     int baseatk;
     int basedef;
     int basehp;
-    sscanf(line,"%s %s %s %d %d %d\n",name,type,movelist,&baseatk,&basedef,&basehp);
+    sscanf(line,"%s %c %s %s %d %d %d\n",name,&display,type,movelist,&baseatk,&basedef,&basehp);
     char** rmovelist=(char**)calloc(20,20);
     char *token=strtok(movelist,",");
     int counter =0;
@@ -151,12 +165,11 @@ pokemons read_pokemons(FILE *fp) {
       token=strtok(NULL,",");
       counter++;
     }
-    pokemonT newpoke = new_pokemonT(name, type, rmovelist, baseatk, basedef, basehp);
+    pokemonT newpoke = new_pokemonT(name,display, type, rmovelist, baseatk, basedef, basehp);
     add_pokemon(newpoke,result);
   }
   return result;
 }
-
 pokemonT find_pokemon(char *poke, pokemons pokelist) {
   pokemon_cons current = pokelist->front;
   while (current != NULL) {

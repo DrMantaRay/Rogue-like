@@ -1,2 +1,26 @@
-gyrados water fly,bounce,squirt 10 10 100
-dragonite dragon fly,bounce 5 10 50
+aquator A water splash,flail,plop 2 5 50
+bat B none plop 3 3 50
+cat C nine-lived scratch,wimper 4 3 200
+dragon D dragon fireball,fly,bounce 20 10 500
+elephant E animal crush,flail 10 10 500
+fairy F fairy splash,dance 1 1 1
+gyrados G water fly,bounce,twister 10 10 1000
+hobgoblin H basic punch 4 4 200
+icemonster I ice freezingtouch,plop 1 1000 50
+jeckel J doctor death 1 1 1
+kangaroo K animal smoke_grass,crush 4 4 100
+leprechan L you smoke_pipe,punch,dance,fireball,excalibur 50 50 150
+man M none punch,smoke_grass 5 5 100
+nun N human flail,dance,freezingtouch 4 6 200
+opportunity O chance wheelofdoom 1 10 200
+paranormal P spooky twister,plop,fly 10 10 200
+quail Q bird splash,flail 3 3 20
+rattlesnake R snake poisonsting 4 4 40
+snake S snake flail 4 4 30
+time T ??? taxes,death 10 1000 10000000
+unicorn U ??? hornattack,crush 20 15 600
+velociraptor V ??? fly,crush 20 20 100
+walkula W ??? scratch,poisonsting 5 10 50
+xylophone X ??? dance 1 1 1
+yak Y ??? crush 5 5 50
+zebra Z animal crush,flail 4 4 50

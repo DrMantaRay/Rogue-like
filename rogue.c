@@ -166,6 +166,7 @@ int main(){
                             wrefresh(topwin);
                             wgetch(topwin);
                             clear();
+                            endwin();
                             echo();
                             exit(0);
                         }             
@@ -230,6 +231,7 @@ int main(){
                             wrefresh(topwin);
                             wgetch(topwin);
                             clear();
+                            endwin();
                             echo();
                             exit(0);
                         }  
@@ -300,6 +302,7 @@ int main(){
                             wrefresh(topwin);
                             wgetch(topwin);
                             clear();
+                            endwin();
                             echo();
                             exit(0);
                         }              
@@ -370,6 +373,7 @@ int main(){
                             wrefresh(topwin);
                             wgetch(topwin);
                             clear();
+                            endwin();
                             echo();
                             exit(0);
                         }  

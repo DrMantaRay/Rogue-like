@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ncurses.h>
-#include "pokemon.h"
+#include "rogue.h"
 
 //basic initialize function for your hero.
 

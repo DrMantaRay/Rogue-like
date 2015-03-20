@@ -7,6 +7,7 @@
 #include "rogue.h"
 #include <unistd.h>
 
+//Monster attack. Randomize hit chance and damage.
 int monster_attack(amove m, monster p, hero h) {
   int roll1 = rand()%100;
   int roll2 = rand()%20;
@@ -19,6 +20,7 @@ int monster_attack(amove m, monster p, hero h) {
   }
 }
 
+//cf monster attack
 int player_attack(amove m, monster p, hero h) {
   int roll1 = rand()%100;
   int roll2 = rand()%20;
@@ -32,7 +34,7 @@ int player_attack(amove m, monster p, hero h) {
 }
 	
 	
-//Graphics
+//Graphics. westwin to update stat window, movefirst=1>>you go first, topwin for message display.
 int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, moves movelist, WINDOW*topwin) {
   wclear(topwin);
   destroy_win(topwin);
@@ -59,7 +61,7 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
   }
   wrefresh(topwin);
   int curmove = movefirst;
-  char input[100]; //Add hp + status stuff. 
+  char input[100]; 
   while (1) {
     wclear(westwin);
     wprintw(westwin,"\nHP:%d\n",h->curhp);
@@ -73,7 +75,7 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
 	wclear(topwin);
 	destroy_win(topwin);
 	topwin=create_newwin(5,68,0,0);
-	mvwprintw(topwin,1,1,"What move do you want to use? (l for list) ");
+	mvwprintw(topwin,1,1,"What move do you want to use? (l for list) "); //If l, cycle through moves one at a time. If a move, use that move. If not a move, loop back to here.
 	wrefresh(topwin);
 	echo();
 	wscanw(topwin, "%s",&input);
@@ -95,10 +97,10 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
 	    topwin=create_newwin(5,68,0,0);
 	    mvwprintw(topwin,1,1,"End of movelist: returning to battle");
 	    wrefresh(topwin);
-	    sleep(2);
+	    sleep(1);
 	  }
 	} else if (is_move(input,yourmovelist)) {
-        if (! strcmp("dance",input)) {
+        if (! strcmp("dance",input)) { //some extra content, since time is ridiculously strong.
           if (strcmp(p->poketype->name,"time")) {
           wclear(topwin);
           destroy_win(topwin);
@@ -127,7 +129,7 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
 	      wclear(topwin);
 	      destroy_win(topwin);
 	      topwin=create_newwin(5,68,0,0);
-	      int choice = rand()%2;
+	      int choice = rand()%2; //randomize message sent out.
 	      if (choice==1) {
 		mvwprintw(topwin,1,1,"%s missed. You cry a little on the inside.\n", input);
 	      } else {
@@ -146,7 +148,7 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
 	  } else {
 	    int heal = m->power*h->level;
 	    h->curhp += heal;
-	    if (h->curhp > h->maxhp) {
+	    if (h->curhp > h->maxhp) { //deal with heal spell.
 	      h->curhp=h->maxhp;
 	    }
 	    wclear(topwin);
@@ -159,10 +161,10 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
 	}
       }
     }
-    else {
+    else { //the monster's turn, similar structure.
       curmove=1;
       int nummoves = leng(p->poketype->movelist);
-      int ran=rand()%nummoves;
+      int ran=rand()%nummoves; //randomize through list of monster's moves.
       amove m=find_move(p->poketype->movelist[ran],movelist);
       int damage=monster_attack(m,p,h);
       if (damage == -1) {
@@ -185,12 +187,12 @@ int battle(WINDOW*westwin, monster p, hero h,int movefirst, list yourmovelist, m
       h->exp += p->level;
       curs_set(0);
       keypad(topwin,FALSE);
-      return 0;
+      return 0; //win
     }
     if (h->curhp<1) {
       curs_set(0);
       keypad(topwin,FALSE);
-      return -1;
+      return -1; //dead
     }
   }
 }

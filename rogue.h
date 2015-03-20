@@ -109,6 +109,7 @@ typedef struct listcons_store {
 typedef struct list_store {
   listcons front;
 } list_store, *list;
+void loot(WINDOW *topwin, item it, list weplist);
 void add_pokemon(pokemonT newpoke, pokemons result);
 int laddercheck(WINDOW*topwin,WINDOW*botwin);
 room init_room(int width,int height,int colw,int cold,int colladder,int coldoor,int colitems);
@@ -125,6 +126,8 @@ tile get_tile(WINDOW* w, room rm, int x,int y);
 item init_item(int flr);
 void create_items(room rm,int flr);
 tile get_local(room rm, int x, int y);
+char *accessweapname(int i,list pokelist);
+list read_names(FILE *fp);
 
 int is_move(char *move, list movelist);
 listcons new_listcons(char*contents, listcons next);

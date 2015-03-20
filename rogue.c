@@ -8,6 +8,10 @@
 #include <ctype.h>
 
 int main(){
+    //loads various item information and initiates hero
+    FILE*fp=fopen("weapondata.txt","r");
+    list weapons = read_names(fp);
+    fclose(fp);
     FILE*movedata = fopen("movedata.txt","r");
     moves movelist = read_moves(movedata);
     fclose(movedata);
@@ -21,6 +25,7 @@ int main(){
     addtolist("punch", yourmovelist);
     int startx,starty,row,col;
     int ch;
+    //starting curses, checking if terminal is large enough.
     initscr();
     start_color();
     cbreak();
@@ -41,6 +46,7 @@ int main(){
     int sstartx=COLS/2;
     int sstarty=LINES/2;
     char name[100];
+    //backstory
     printw("Enter your name: ");
     refresh();
     echo();
@@ -65,6 +71,7 @@ int main(){
     wrefresh(topwin);
     int i;
     int j;
+    //Colors!!
     init_pair(1,COLOR_YELLOW,COLOR_RED);
     init_pair(3,COLOR_RED,COLOR_BLACK);
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
@@ -82,10 +89,12 @@ int main(){
     wrefresh(westwin);
     wbkgd(westwin,COLOR_PAIR(3));
     wclear(westwin);
+    //starting hp/lvl/exp bar
     wprintw(westwin,"\nHP:%d\n",ahero->curhp);
     wprintw(westwin,"LvL:%d\n", ahero->level);
     wprintw(westwin,"Exp:%d\n",ahero->exp);
     wrefresh(westwin);
+    //runs game as long as F2 isn't hit/player does not die.
     while (TRUE) {
         room aroom=map_initialize(flr,pokelist);
         startx=maxxbot/2;
@@ -103,7 +112,10 @@ int main(){
         tile *ntile= malloc(8*sizeof(tile));
         tile ctile;
         while(((ch=wgetch(botwin)) !=KEY_F(2)) && !ladder) {
-                 
+        //checks for up down left right and encounters with
+        //monsters,items,walls,portals,ladders.
+        //starts battle if theres monster, item interaction if there is item
+        //ladder option to go up or stay.
             switch(ch) {
                 case KEY_RIGHT:
                     str=(mvwinch(botwin,starty,startx+1) & A_CHARTEXT);
@@ -119,6 +131,7 @@ int main(){
                     if (str=='$') {
                         tile t=get_tile(botwin,aroom,startx+1,starty);
                         item it= get_tile(botwin,aroom,startx+1,starty)->anitem;
+                        loot(topwin,it,weapons);
                         ahero->atk+=it->atk;
                         ahero->def+=it->def;
                         ahero->exp+=it->exp;
@@ -185,6 +198,7 @@ int main(){
                     if (str=='$') {
                         tile t= get_tile(botwin,aroom,startx-1,starty);
                         item it= get_tile(botwin,aroom,startx-1,starty)->anitem;
+                        loot(topwin,it,weapons);
                         ahero->atk+=it->atk;
                         ahero->def+=it->def;
                         ahero->exp+=it->exp;
@@ -250,6 +264,7 @@ int main(){
                     if (str=='$') {
                         tile t= get_tile(botwin,aroom,startx,starty+1);
                         item it= get_tile(botwin,aroom,startx,starty+1)->anitem;
+                        loot(topwin,it,weapons);
                         ahero->atk+=it->atk;
                         ahero->def+=it->def;
                         ahero->exp+=it->exp;
@@ -323,6 +338,7 @@ int main(){
                     if (str=='$') {
                          tile t=get_tile(botwin,aroom,startx,starty-1);
                         item it= get_tile(botwin,aroom,startx,starty-1)->anitem;
+                        loot(topwin,it,weapons);
                         ahero->atk+=it->atk;
                         ahero->def+=it->def;
                         ahero->exp+=it->exp;
@@ -383,6 +399,7 @@ int main(){
                 default:
                     break;
             }
+            //updates hero hp,exp,level and activates the npc movement.
             wclear(westwin);
             wprintw(westwin,"\nHP:%d\n",ahero->curhp);
             wprintw(westwin,"LvL:%d\n", ahero->level);
@@ -425,6 +442,7 @@ int main(){
             }
             display_room(botwin,maxxbot/2,maxybot/2,aroom);
             mvwaddch(botwin,starty,startx,64 |A_BOLD|COLOR_PAIR(1));
+            //checks for level up and learns skills if hero levels.
             if (ahero->exp > 40*ahero->level) {
                   ahero->exp = 0;
                   ahero->level++;
@@ -463,6 +481,6 @@ int main(){
         }
         
     }
-    endwin();			/* End curses mode		  */
+    endwin();			//ends curses.
     return 0;
 }

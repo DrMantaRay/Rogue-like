@@ -5,7 +5,7 @@
 #include <ncurses.h>
 #include "rogue.h"
 
-//Movelists should be null terminated.
+//gets the pokemon name, indexed by number, out of the list of all pokemon.
 char *accesspokename(int i,pokemons pokelist) {
   if (i>25) {
     return NULL;
@@ -18,6 +18,8 @@ char *accesspokename(int i,pokemons pokelist) {
   }
   return current->contents->name;
 }
+
+//move initializer
 amove new_move(char *name, char *type, int tohit, int power) {
   amove result = (amove) malloc(sizeof(move_store));
   assert(result != NULL);
@@ -32,6 +34,7 @@ void free_move(amove m) {
   free((void *) m);
 }
 
+//finds move indexed by name from moves format
 amove find_move(char *movename, moves movelist) {
   move_cons current = movelist->front;
   while (current != NULL) {
@@ -44,6 +47,7 @@ amove find_move(char *movename, moves movelist) {
   return NULL;
 }
 
+//move_cons initializer
 move_cons new_move_cons(amove m, move_cons next) {
   move_cons result = (move_cons) malloc(sizeof(move_cons_store));
   assert(result != NULL);
@@ -56,6 +60,7 @@ void free_move_cons(move_cons m) {
   free((void *) m);
 }
 
+//moves initializer
 moves new_moves() {
   moves result = (moves) malloc(sizeof(moves_store));
   assert(result != NULL);
@@ -63,12 +68,13 @@ moves new_moves() {
   return result;
 }
 
+//attaches move to the front of the movelist
 void add_move(amove m, moves movelist) {
   move_cons newcons = new_move_cons(m,movelist->front);
   movelist->front = newcons;
 }
   
-
+//number of moves in movelist
 int num_moves(moves m) {
   int result = 0;
   move_cons current = m->front;
@@ -89,6 +95,7 @@ void free_moves(moves m) {
   free((void *) m);
 }
 
+//reads moves from appropriately formatted text file.
 moves read_moves(FILE *fp) {
   moves result = new_moves();
   char *line=malloc(400);
@@ -108,6 +115,7 @@ void free_pokemon(pokemonT m) {
   free((void *) m);
 }
 
+//Pokemon functions follow same format as move functions
 void add_pokemon(pokemonT m, pokemons movelist) {
   pokemon_cons newcons = new_pokemon_cons(m,movelist->front);
   movelist->front = newcons;
@@ -145,6 +153,7 @@ pokemonT new_pokemonT(char *name, char form, char *type, char **movelist, int ba
   return result;
 }
 
+//This is the only wrinkle cf moves: need additional thing to read the list of moves for the pokemon; comma separated.
 pokemons read_pokemons(FILE *fp) {
   char*line=malloc(600);
   pokemons result = new_pokemons();
@@ -170,6 +179,7 @@ pokemons read_pokemons(FILE *fp) {
   }
   return result;
 }
+
 pokemonT find_pokemon(char *poke, pokemons pokelist) {
   pokemon_cons current = pokelist->front;
   while (current != NULL) {
@@ -192,6 +202,7 @@ void free_pokemons(pokemons m) {
   free((void *) m);
 }
 
+//a monster is what you actually see, an instantiation of a pokemon
 monster init_monster(int level, char *poketype, pokemons pokelist) {
   monster result = (monster) malloc(sizeof(monster_store));
   assert(result != NULL);
@@ -208,6 +219,7 @@ void freemonster(monster m) {
   free((void *) m);
 }
 
+//helper function to compute length of array of strings.
 int leng(char** array) {
   int count = 0;
   while(array[count]) count++;

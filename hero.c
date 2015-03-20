@@ -3,9 +3,9 @@
 #include <assert.h>
 #include <string.h>
 #include <ncurses.h>
-#include "rogue.h"
+#include "pokemon.h"
 
-//Need to make list type.
+//basic initialize function for your hero.
 
 hero new_hero(int level, int maxhp, int curhp, int atk, int def) {
   hero result = (hero) malloc(sizeof(hero_store));
@@ -13,6 +13,7 @@ hero new_hero(int level, int maxhp, int curhp, int atk, int def) {
   result->level=level;
   result->maxhp=maxhp;
   result->curhp=curhp;
+  //exp somewhere
   result->atk=atk;
   result->def=def;
   return result;

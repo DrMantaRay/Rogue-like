@@ -5,7 +5,7 @@
 #include "rogue.h"
 
 
-
+//gives tile based on absolute distance from window.
 tile get_tile(WINDOW* w, room rm, int x,int y) {
     int maxxbot,maxybot;
     getmaxyx(w,maxybot,maxxbot);
@@ -21,6 +21,7 @@ tile get_tile(WINDOW* w, room rm, int x,int y) {
         }
     }
 }
+//gives tile based on relative distance from game box.
 tile get_local(room rm, int x, int y) {
     int i;
     for (i=0;i<rm->xsize*rm->ysize;++i) {
@@ -29,6 +30,8 @@ tile get_local(room rm, int x, int y) {
         }
     }
 }
+//terrible hack that initializes map... works by creating rooms and then
+//extra connected rooms. uses all functions from mappadds
 room map_initialize(int flr,pokemons pokelist) {
     int i;
     int j;
@@ -89,6 +92,8 @@ room map_initialize(int flr,pokemons pokelist) {
     }
     return roomlist[0];
 }
+//moves us from room to room through portals. terrible arithmetic to exit
+//out correct doorway in correct place of next room.
 int mover(char ch,WINDOW*pwin,WINDOW*dwin,room rm,int side,int*x,int*y) {
     int maxybot,maxxbot;
     getmaxyx(dwin,maxybot,maxxbot);
@@ -127,7 +132,7 @@ int mover(char ch,WINDOW*pwin,WINDOW*dwin,room rm,int side,int*x,int*y) {
     }
     return 0;
 }
-
+//checks if person wants to use ladder. if so, returns 1. otherwise returns 0
 int laddercheck(WINDOW*topwin,WINDOW*botwin) {
     char res;
     while (TRUE) {
@@ -162,7 +167,7 @@ int laddercheck(WINDOW*topwin,WINDOW*botwin) {
         }
     }   
 }
-
+//gets next room from a room
 room get_next(room aroom,int i) {
     room result;
     if (i==0) {
@@ -179,6 +184,7 @@ room get_next(room aroom,int i) {
     }
     return result;
 }
+//hack that matches rooms together.
 int room_match(room ra,room rb) {
     int i;
     int n=0;
@@ -229,7 +235,7 @@ int room_match(room ra,room rb) {
     }
     return 1;
 }
-
+//initializes room. (walls, interior)
 room init_room(int width,int height,int colw,int cold,int colladder,int coldoor,int colitems) {
     room result= malloc(sizeof(struct room_store));
     result->xsize=width;
@@ -291,6 +297,7 @@ room init_room(int width,int height,int colw,int cold,int colladder,int coldoor,
     return result;
 }
 
+//frees room
 void free_room (room rm) {
     int i;
     for (i=0;i<rm->xsize*rm->ysize;++i) {
@@ -299,6 +306,7 @@ void free_room (room rm) {
     free ((void*) rm->tilearray);
     free ((void*) rm);
 }
+//displays room based on the form.
 void display_room(WINDOW *win, int startx,int starty,room aroom) {
     int n;
     int col;

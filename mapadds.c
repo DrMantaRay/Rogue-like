@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+//creates items given a room.
 void create_items(room rm,int flr) {
     int i;
     int r;
@@ -17,6 +18,7 @@ void create_items(room rm,int flr) {
         }
     }
 }
+//creates monsters given a room.
 void create_monsters(room rm,int flr, char* pokemon, pokemons pokelist) {
     int i;
     int r;
@@ -32,6 +34,7 @@ void create_monsters(room rm,int flr, char* pokemon, pokemons pokelist) {
         }
     }
 }
+//creates portals given a room. terrible hack for different portal directions.
 int create_portals(room ar) {
     int ran;
     int i;

@@ -6,7 +6,7 @@
 #include "rogue.h"
 
 
-
+//checks whether a string is in the list data-type by cycling through
 int is_move(char *move, list movelist) {
 	listcons current = movelist->front;
 	while (current != NULL) {
@@ -20,6 +20,7 @@ int is_move(char *move, list movelist) {
 	}
 }
 
+//listcons initializer
 listcons new_listcons(char*contents, listcons next) {
   listcons result = (listcons) malloc(sizeof(listcons_store));
   assert(result != NULL);
@@ -28,6 +29,7 @@ listcons new_listcons(char*contents, listcons next) {
   return result;
 }
 
+//list initializer
 list new_list() {
   list result = (list) malloc(sizeof(list_store));
   assert(result != NULL);
@@ -35,6 +37,7 @@ list new_list() {
   return result;
 }
 
+//put string into list
 void addtolist(char*thing,list stuff) {
   stuff->front= new_listcons(thing,stuff->front);
 }

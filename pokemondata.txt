@@ -1,0 +1,2 @@
+gyrados water fly,bounce,squirt 10 10 100
+dragonite dragon fly,bounce 5 10 50

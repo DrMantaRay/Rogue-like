@@ -1,0 +1,2 @@
+fly flying 100 100
+bounce flying 10 1000
